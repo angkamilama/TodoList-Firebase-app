@@ -7,11 +7,13 @@ import {
 
 import Home from "./components/Home";
 import RootLayout from "./components/RootLayout";
+import Login from "./components/Login";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<RootLayout />}>
       <Route index element={<Home />} />
+      <Route path="Login" element={<Login />} />
     </Route>
   )
 );

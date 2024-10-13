@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig/firebaseConfig";
-import { db } from "../firebaseConfig/firebaseConfig";
+import { auth } from "../firebaseConfig/Configuration";
+import { db } from "../firebaseConfig/Configuration";
 import {
   collection,
   doc,
@@ -10,18 +10,10 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
+import { NavLink } from "react-router-dom";
+import MyForm from "./MyForm";
+import { UserInfo, Todotype, User } from "../Interface&Type/MyInterfaces";
 
-interface Todotype {
-  id: string;
-  todoItem?: string;
-}
-
-interface UserInfo {
-  email: string;
-  password: string;
-  loggedIn: boolean;
-  userId: string;
-}
 function Home() {
   const [userInfo, setUserInfo] = useState<UserInfo>({
     email: "",
@@ -34,11 +26,7 @@ function Home() {
   const [editedTodoItem, setEditedTodoItem] = useState("");
   const [editedId, setEditedId] = useState("");
   const [todos, setTodos] = useState<Todotype[]>([]);
-  const [registerMessage, setRegisterMessage] = useState(false);
-  const [user, setUser] = useState<{
-    userEmail: string;
-    userId: string;
-  } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const fetchTodos = async () => {
     try {
@@ -60,28 +48,20 @@ function Home() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!userInfo.password || !userInfo.email) {
-      setRegisterMessage(true);
-      return;
-    }
+  const handleRegister = async (email: string, password: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        userInfo.email,
-        userInfo.password
+        email,
+        password
       );
-
       const userEmail = userCredential.user.email as string;
       const userId = userCredential.user.uid;
       setUser({ userEmail, userId });
-      setUserInfo({ email: "", password: "", loggedIn: true, userId });
     } catch (err) {
       console.error(err);
     }
   };
-
   const submitTodoItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!todoItem) return;
@@ -144,46 +124,20 @@ function Home() {
             </div>
           ) : (
             <>
-              <form
-                onSubmit={handleSubmit}
-                className="h-[270px] flex flex-col justify-evenly items-center w-11/12 md:full mb-5 border border-orange-500 p-3"
-              >
-                <label className="w-full flex justify-between items-center">
-                  E-mail:
-                  <input
-                    value={userInfo.email}
-                    onChange={(e) =>
-                      setUserInfo({ ...userInfo, email: e.target.value })
-                    }
-                    className="ml-5 w-[190px] md:w-2/3 p-1 border border-slate-500"
-                  />
-                </label>
-                <label className="w-full flex justify-between items-center">
-                  Password:
-                  <input
-                    type="password"
-                    value={userInfo.password}
-                    onChange={(e) =>
-                      setUserInfo({ ...userInfo, password: e.target.value })
-                    }
-                    className="ml-5 w-[190px] md:w-2/3 border border-slate-500 p-1"
-                  />
-                </label>
-                <button className="border border-slate-700 px-3 py-1 rounded-lg ml-2">
-                  Register
-                </button>
-                <p
-                  className={`${registerMessage ? "visible text-red-700 text-center" : "invisible"} font-semibold`}
-                >
-                  Please fill in your detail!
-                </p>
-              </form>
+              <MyForm
+                onSubmit={handleRegister}
+                buttonText="Register"
+                errorMessage="Please fill in your detail!"
+              />
               <div>
                 <p>
                   Do you already have an account?{" "}
-                  <span className="border border-slate-800 p-1 rounded-lg bg-slate-200">
+                  <NavLink
+                    to="/Login"
+                    className="border border-slate-800 p-1 rounded-lg bg-slate-200"
+                  >
                     Login Here!
-                  </span>
+                  </NavLink>
                 </p>
               </div>
             </>
