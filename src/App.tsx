@@ -1,25 +1,42 @@
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-  RouterProvider,
-} from "react-router-dom";
-
-import Home from "./components/Home";
+import React, { useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { UserContext } from "./MyContext/UserContext"; // Adjust the path as necessary
 import RootLayout from "./components/RootLayout";
+import Home from "./components/Home";
 import Login from "./components/Login";
+import { UserInfo } from "./Interface&Type/MyInterfaces";
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path="/" element={<RootLayout />}>
-      <Route index element={<Home />} />
-      <Route path="Login" element={<Login />} />
-    </Route>
-  )
-);
+const App = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    email: "",
+    password: "",
+    loggedIn: false,
+    userId: "",
+  });
 
-function App() {
-  return <RouterProvider router={router} />;
-}
+  // Create router
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <RootLayout />,
+      children: [
+        {
+          index: true,
+          element: <Home />,
+        },
+        {
+          path: "Login",
+          element: <Login />,
+        },
+      ],
+    },
+  ]);
+
+  return (
+    <UserContext.Provider value={{ userInfo, setUserInfo }}>
+      <RouterProvider router={router} />
+    </UserContext.Provider>
+  );
+};
 
 export default App;

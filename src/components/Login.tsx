@@ -1,18 +1,23 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig/Configuration";
-import { useState } from "react";
 import MyForm from "./MyForm";
-import { useNavigate } from "react-router";
-
-interface User {
-  userEmail: string;
-  userId: string;
-}
+import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { UserContext } from "../MyContext/UserContext";
 
 function Login() {
-  const [user, setUser] = useState<User | null>();
-
   const navigate = useNavigate();
+  const context = useContext(UserContext);
+
+  // Handle context potentially being undefined
+  if (!context) {
+    throw new Error("Login must be used within a UserProvider");
+  }
+
+  const { userInfo, setUserInfo } = context;
+  console.log(userInfo);
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -23,23 +28,31 @@ function Login() {
       );
       const userEmail = userCredential.user.email as string;
       const userId = userCredential.user.uid;
-      setUser({ userEmail, userId });
 
+      const newUserInfo = {
+        email: userEmail,
+        password: "", // Avoid storing passwords
+        loggedIn: true,
+        userId: userId,
+      };
+
+      setUserInfo(newUserInfo);
       navigate("/");
     } catch (err) {
+      // Update error message for the user
+      setErrorMessage("Login failed. Please check your email and password.");
       console.error(err);
     }
   };
 
   return (
     <div>
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <MyForm
         onSubmit={handleLogin}
         buttonText="Login"
-        errorMessage="Please fill in your detail!"
+        errorMessage="Please fill in your details!"
       />
-
-      {user && <p>Welcome {user.userEmail}!</p>}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig/Configuration";
 import { db } from "../firebaseConfig/Configuration";
@@ -12,21 +12,18 @@ import {
 } from "firebase/firestore";
 import { NavLink } from "react-router-dom";
 import MyForm from "./MyForm";
-import { UserInfo, Todotype, User } from "../Interface&Type/MyInterfaces";
+import { Todotype, User } from "../Interface&Type/MyInterfaces";
+import { UserContext } from "../MyContext/UserContext";
 
 function Home() {
-  const [userInfo, setUserInfo] = useState<UserInfo>({
-    email: "",
-    password: "",
-    loggedIn: false,
-    userId: "",
-  });
-
   const [todoItem, setTodoItem] = useState("");
   const [editedTodoItem, setEditedTodoItem] = useState("");
   const [editedId, setEditedId] = useState("");
   const [todos, setTodos] = useState<Todotype[]>([]);
   const [user, setUser] = useState<User | null>(null);
+
+  const context = useContext(UserContext);
+  console.log(context?.userInfo);
 
   const fetchTodos = async () => {
     try {
@@ -58,6 +55,12 @@ function Home() {
       const userEmail = userCredential.user.email as string;
       const userId = userCredential.user.uid;
       setUser({ userEmail, userId });
+      context?.setUserInfo({
+        email: userEmail,
+        password: password,
+        loggedIn: true,
+        userId: userId,
+      });
     } catch (err) {
       console.error(err);
     }
@@ -69,7 +72,7 @@ function Home() {
     try {
       await addDoc(collection(db, "TODOLIST"), {
         todoItem,
-        userId: userInfo.userId,
+        userId: context?.userInfo.userId,
       });
       setTodoItem("");
       await fetchTodos(); // Fetch todos after adding the new one
@@ -101,7 +104,7 @@ function Home() {
     <div className="w-full  h-screen flex justify-center items-center box-border">
       <div className="h-10/12 w-10/12 md:w-5/12">
         <div className="w-full mb-3">
-          {userInfo.loggedIn ? (
+          {context?.userInfo.loggedIn ? (
             <div className="text-center">
               {user && <p className="mb-5">Welcome {user.userEmail}!</p>}
               <form
