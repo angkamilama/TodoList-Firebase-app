@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig/Configuration";
 import { db } from "../firebaseConfig/Configuration";
@@ -20,8 +20,11 @@ function Home() {
   const [todoItem, setTodoItem] = useState("");
   const [editedTodoItem, setEditedTodoItem] = useState("");
   const [editedId, setEditedId] = useState("");
-  const [showTodoList, setShowTodoList] = useState(false);
   const [todos, setTodos] = useState<Todotype[]>([]);
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
   const context = useContext(UserContext);
   if (!context) {
@@ -77,7 +80,6 @@ function Home() {
         userId: context?.userInfo.userId,
       });
       setTodoItem("");
-      setShowTodoList(true);
       await fetchTodos(); // Fetch todos after adding the new one
     } catch (err) {
       console.error("Error adding document: ", err);
@@ -112,7 +114,6 @@ function Home() {
       .then(() => {
         console.log("User signed out successfully");
         context.setUserInfo({ ...context.userInfo, loggedIn: false });
-        setShowTodoList(false);
       })
       .catch((error) => {
         console.error("Error signing out: ", error);
@@ -145,6 +146,66 @@ function Home() {
                   Add
                 </button>
               </form>
+              <div className="p-2">
+                <h1 className="text-lg md:text-center font-bold mb-4">
+                  Todo List:
+                </h1>
+                <div>
+                  <ul className="flex flex-col justify-evenly items-center w-full">
+                    {todos.map((todo) => (
+                      <li
+                        key={todo.id}
+                        className="flex justify-around items-center w-full mb-3"
+                      >
+                        {todo.id === editedId ? (
+                          <>
+                            <label>
+                              <input
+                                type="text"
+                                value={editedTodoItem}
+                                onChange={(e) =>
+                                  setEditedTodoItem(e.target.value)
+                                }
+                                className="w-2/3 md:full p-1 border border-slate-500"
+                              />
+                            </label>
+                            <button
+                              className="w-[70px] border border-slate-700 px-2 py-1 rounded-lg ml-2"
+                              onClick={() => handleUpdateTodoItem(todo.id)}
+                            >
+                              Update
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-2/3">{todo?.todoItem}</span>
+                            <button
+                              onClick={() => setEditedId(todo.id)}
+                              className="w-[60px] border border-slate-700 px-3 py-1 rounded-lg ml-2"
+                            >
+                              Edit
+                            </button>
+                          </>
+                        )}
+                        <button
+                          className="w-[60px] border border-slate-700 p-1 rounded-lg ml-2"
+                          onClick={() => handleDelete(todo.id)}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="text-center">
+                  <button
+                    className="w-[70px] border border-slate-700 px-2 py-1 rounded-lg mx-auto mt-4"
+                    onClick={() => handleSignOut()}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <>
@@ -167,72 +228,6 @@ function Home() {
               </div>
             </>
           )}
-        </div>
-        <div className="p-2 ">
-          <ul>
-            {showTodoList ? (
-              <>
-                <h1 className="text-lg md:text-center font-bold mb-4">
-                  Todo List:
-                </h1>
-                <div className="flex flex-col justify-evenly items-center w-full border border-red-600">
-                  {todos.map((todo) => (
-                    <div
-                      key={todo.id}
-                      className="flex justify-around items-center w-full md:w-2/3 mb-3"
-                    >
-                      {todo.id === editedId ? (
-                        <>
-                          <label>
-                            <input
-                              type="text"
-                              value={editedTodoItem}
-                              onChange={(e) =>
-                                setEditedTodoItem(e.target.value)
-                              }
-                              className="w-2/3 md:full p-1 border border-slate-500"
-                            />
-                          </label>
-                          <button
-                            className="w-[70px] border border-slate-700 px-2 py-1 rounded-lg ml-2"
-                            onClick={() => handleUpdateTodoItem(todo.id)}
-                          >
-                            Update
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <li className="w-2/3">{todo?.todoItem}</li>
-                          <button
-                            onClick={() => setEditedId(todo.id)}
-                            className="w-[60px] border border-slate-700 px-3 py-1 rounded-lg ml-2"
-                          >
-                            Edit
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className="w-[60px] border border-slate-700 p-1 rounded-lg ml-2"
-                        onClick={() => handleDelete(todo.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                  <div className="text-center">
-                    <button
-                      className="w-[70px] border border-slate-700 px-2 py-1 rounded-lg mx-auto mt-4"
-                      onClick={() => handleSignOut()}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              ""
-            )}
-          </ul>
         </div>
       </div>
     </div>
