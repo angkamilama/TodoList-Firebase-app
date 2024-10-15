@@ -12,18 +12,21 @@ import {
 } from "firebase/firestore";
 import { NavLink } from "react-router-dom";
 import MyForm from "./MyForm";
-import { Todotype, User } from "../Interface&Type/MyInterfaces";
+import { Todotype } from "../Interface&Type/MyInterfaces";
 import { UserContext } from "../MyContext/UserContext";
+import { signOut } from "firebase/auth";
 
 function Home() {
   const [todoItem, setTodoItem] = useState("");
   const [editedTodoItem, setEditedTodoItem] = useState("");
   const [editedId, setEditedId] = useState("");
+  const [showTodoList, setShowTodoList] = useState(false);
   const [todos, setTodos] = useState<Todotype[]>([]);
-  const [user, setUser] = useState<User | null>(null);
 
   const context = useContext(UserContext);
-  console.log(context?.userInfo);
+  if (!context) {
+    throw new Error("there is no context");
+  }
 
   const fetchTodos = async () => {
     try {
@@ -54,7 +57,6 @@ function Home() {
       );
       const userEmail = userCredential.user.email as string;
       const userId = userCredential.user.uid;
-      setUser({ userEmail, userId });
       context?.setUserInfo({
         email: userEmail,
         password: password,
@@ -75,6 +77,7 @@ function Home() {
         userId: context?.userInfo.userId,
       });
       setTodoItem("");
+      setShowTodoList(true);
       await fetchTodos(); // Fetch todos after adding the new one
     } catch (err) {
       console.error("Error adding document: ", err);
@@ -88,16 +91,32 @@ function Home() {
   };
 
   const handleUpdateTodoItem = async (userId: string) => {
-    const userDoc = doc(db, "TODOLIST", userId);
-    await updateDoc(userDoc, {
-      todoItem: editedTodoItem,
-    });
-    const updatedTodoList = todos.map((todo) =>
-      todo.id === userId ? { ...todo, todoItem: editedTodoItem } : todo
-    );
-    setTodos(updatedTodoList);
-    setEditedId("");
-    setEditedTodoItem("");
+    if (!editedTodoItem) {
+      console.error("please update your todo item");
+    } else {
+      const userDoc = doc(db, "TODOLIST", userId);
+      await updateDoc(userDoc, {
+        todoItem: editedTodoItem,
+      });
+      const updatedTodoList = todos.map((todo) =>
+        todo.id === userId ? { ...todo, todoItem: editedTodoItem } : todo
+      );
+      setTodos(updatedTodoList);
+      setEditedId("");
+      setEditedTodoItem("");
+    }
+  };
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        console.log("User signed out successfully");
+        context.setUserInfo({ ...context.userInfo, loggedIn: false });
+        setShowTodoList(false);
+      })
+      .catch((error) => {
+        console.error("Error signing out: ", error);
+      });
   };
 
   return (
@@ -106,7 +125,9 @@ function Home() {
         <div className="w-full mb-3">
           {context?.userInfo.loggedIn ? (
             <div className="text-center">
-              {user && <p className="mb-5">Welcome {user.userEmail}!</p>}
+              {context?.userInfo?.email && (
+                <p className="mb-5">Welcome {context?.userInfo?.email}!</p>
+              )}
               <form
                 onSubmit={submitTodoItem}
                 className="flex justify-evenly items-center"
@@ -132,6 +153,7 @@ function Home() {
                 buttonText="Register"
                 errorMessage="Please fill in your detail!"
               />
+
               <div>
                 <p>
                   Do you already have an account?{" "}
@@ -146,12 +168,14 @@ function Home() {
             </>
           )}
         </div>
-        <div className=" p-2 ">
+        <div className="p-2 ">
           <ul>
-            {todos.length > 0 ? (
+            {showTodoList ? (
               <>
-                <h1 className="text-lg md:text-center font-bold">Todo List:</h1>
-                <div className="flex flex-col justify-evenly items-center">
+                <h1 className="text-lg md:text-center font-bold mb-4">
+                  Todo List:
+                </h1>
+                <div className="flex flex-col justify-evenly items-center w-full border border-red-600">
                   {todos.map((todo) => (
                     <div
                       key={todo.id}
@@ -166,7 +190,7 @@ function Home() {
                               onChange={(e) =>
                                 setEditedTodoItem(e.target.value)
                               }
-                              className="w-2/3 md:w-2/3 p-1 border border-slate-500"
+                              className="w-2/3 md:full p-1 border border-slate-500"
                             />
                           </label>
                           <button
@@ -195,6 +219,14 @@ function Home() {
                       </button>
                     </div>
                   ))}
+                  <div className="text-center">
+                    <button
+                      className="w-[70px] border border-slate-700 px-2 py-1 rounded-lg mx-auto mt-4"
+                      onClick={() => handleSignOut()}
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (

@@ -10,7 +10,8 @@ export interface UserInfo {
   userId: string;
 }
 
-export interface User {
-  userEmail: string;
-  userId: string;
+export interface AuthFormProps {
+  onSubmit: (email: string, password: string) => void;
+  buttonText: string;
+  errorMessage: string;
 }

@@ -1,11 +1,6 @@
 // AuthForm.tsx
 import React, { useState } from "react";
-
-interface AuthFormProps {
-  onSubmit: (email: string, password: string) => void;
-  buttonText: string;
-  errorMessage: string;
-}
+import { AuthFormProps } from "../Interface&Type/MyInterfaces";
 
 function AuthForm({ onSubmit, buttonText, errorMessage }: AuthFormProps) {
   const [email, setEmail] = useState("");

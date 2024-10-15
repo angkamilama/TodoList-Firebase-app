@@ -1,6 +1,5 @@
 import { createContext } from "react";
 
-// Define UserInfo type
 interface UserInfo {
   email: string;
   password: string;
@@ -8,7 +7,6 @@ interface UserInfo {
   userId: string;
 }
 
-// Create UserContext
 const UserContext = createContext<
   | {
       userInfo: UserInfo;
@@ -17,4 +15,4 @@ const UserContext = createContext<
   | undefined
 >(undefined);
 
-export { UserContext }; // Export UserContext for use in other components
+export { UserContext };

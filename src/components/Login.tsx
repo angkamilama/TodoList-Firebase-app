@@ -9,7 +9,6 @@ function Login() {
   const navigate = useNavigate();
   const context = useContext(UserContext);
 
-  // Handle context potentially being undefined
   if (!context) {
     throw new Error("Login must be used within a UserProvider");
   }
@@ -31,7 +30,7 @@ function Login() {
 
       const newUserInfo = {
         email: userEmail,
-        password: "", // Avoid storing passwords
+        password: "",
         loggedIn: true,
         userId: userId,
       };
@@ -47,7 +46,7 @@ function Login() {
 
   return (
     <div>
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+      {errorMessage && <p className="text-red-700">{errorMessage}</p>}
       <MyForm
         onSubmit={handleLogin}
         buttonText="Login"
