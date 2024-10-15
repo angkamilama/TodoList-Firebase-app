@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { UserContext } from "./MyContext/UserContext"; // Adjust the path as necessary
+import { UserContext } from "./MyContext/UserContext";
 import RootLayout from "./components/RootLayout";
 import Home from "./components/Home";
 import Login from "./components/Login";
@@ -14,7 +14,6 @@ const App = () => {
     userId: "",
   });
 
-  // Create router
   const router = createBrowserRouter([
     {
       path: "/",

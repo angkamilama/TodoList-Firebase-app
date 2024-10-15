@@ -1,5 +1,4 @@
-// AuthForm.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { AuthFormProps } from "../Interface&Type/MyInterfaces";
 
 function AuthForm({ onSubmit, buttonText, errorMessage }: AuthFormProps) {
